@@ -31,7 +31,9 @@ def gethtml(url):
 
 def languages():
     html = gethtml('http://www.uebersetzung.at/twister/index.html')
-    return map(str, html.xpath('//p/a[contains(text(), "tongue twisters")]/@href'))
+    for href in html.xpath('//p/a[contains(text(), "tongue twisters")]/@href'):
+        if href != 'http://www.uebersetzung.at/twister/sk.htm':
+            yield href
 
 def parse_language(html):
     xpath = '//h1[contains(text(), "Tongue Twisters")]'
