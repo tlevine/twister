@@ -24,7 +24,7 @@ def gethtml(url):
     try:
         html = lxml.html.fromstring(get(url).text)
     except Exception as e:
-        e.args = ('%s (%s)' % (e.args[0], url),) + e.args[1:]
+        print(url)
         raise e
     html.make_links_absolute(url)
     return html
@@ -36,7 +36,6 @@ def languages():
 def parse_language(html):
     xpath = '//h1[contains(text(), "Tongue Twisters")]'
     language = html.xpath(xpath)[0].text_content().strip().replace(' Tongue Twisters', '')
-    print(language)
     def _parse_pad(pad):
         original = pad.xpath('p[@class="TXT"]')[0].text_content()
         hrefs = pad.xpath('descendant::a/@href')
