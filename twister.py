@@ -21,7 +21,11 @@ def twister():
 
 get = cache('~/.twister')(requests.get)
 def gethtml(url):
-    html = lxml.html.fromstring(get(url).text)
+    try:
+        html = lxml.html.fromstring(get(url).text)
+    except Exception as e:
+        e.args = ('%s (%s)' % (e.args[0], url),) + e.args[1:]
+        raise e
     html.make_links_absolute(url)
     return html
 
@@ -32,13 +36,14 @@ def languages():
 def parse_language(html):
     xpath = '//h1[contains(text(), "Tongue Twisters")]'
     language = html.xpath(xpath)[0].text_content().strip().replace(' Tongue Twisters', '')
+    print(language)
     def _parse_pad(pad):
         original = pad.xpath('p[@class="TXT"]')[0].text_content()
         hrefs = pad.xpath('descendant::a/@href')
-        if len(hrefs) == 0:
+        if len(hrefs) == 0 or \
+                hrefs[0] == 'http://www.squarewheels.com/content2/copyrightexpl.html':
             translation = None
         else:
-            print(hrefs)
             name = hrefs[0].split('#')[1]
             translation = html.xpath('//li[a[@name="%s"]]' % name)[0].text_content()
         return original, translation
