@@ -11,8 +11,11 @@ def main():
 
 def twister():
     for language_url in languages():
+        html = gethtml(language_url)
+        if html == None:
+            continue
         try:
-            language = parse_language(gethtml(language_url))
+            language = parse_language(html)
         except Exception as e:
             e.args = ('%s (%s)' % (e.args[0], language['language']),) + e.args[1:]
             raise e
@@ -21,8 +24,11 @@ def twister():
 
 get = cache('~/.twister')(requests.get)
 def gethtml(url):
+    raw = get(url).content.decode('utf-8')
+    if raw == '':
+        return None
     try:
-        html = lxml.html.fromstring(get(url).content.decode('utf-8'))
+        html = lxml.html.fromstring(raw)
     except Exception as e:
         print(url)
         raise e
@@ -31,10 +37,7 @@ def gethtml(url):
 
 def languages():
     html = gethtml('http://www.uebersetzung.at/twister/index.html')
-    for href in html.xpath('//p/a[contains(text(), "tongue twisters")]/@href'):
-        code = href.replace('http://www.uebersetzung.at/twister/', '').replace('.htm', '')
-        if code not in {'sk', 'sl', 'xog'}:
-            yield href
+    return map(str, html.xpath('//p/a[contains(text(), "tongue twisters")]/@href'))
 
 def parse_language(html):
     xpath = '//h1[contains(text(), "Tongue Twisters")]'
