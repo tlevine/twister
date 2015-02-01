@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import requests
 import lxml.html
 from vlermv import cache
@@ -6,13 +7,13 @@ def main():
     import csv, sys
     writer = csv.writer(sys.stdout)
     writer.writerow(('language', 'tongue twister', 'translation'))
-    writer.writerows(twister)
+    writer.writerows(twister())
 
 def twister():
     for language_url in languages():
-        language = parse_language(url)
+        language = parse_language(gethtml(language_url))
         for original, translation in language['tongue_twisters']:
-            yield language, original, translation
+            yield language['language'], original, translation
 
 get = cache('~/.twister')(requests.get)
 def gethtml(url):
@@ -24,18 +25,24 @@ def languages():
     html = gethtml('http://www.uebersetzung.at/twister/index.html')
     return map(str, html.xpath('//p/a[contains(text(), "tongue twisters")]/@href'))
 
-def _parse_pad(pad):
-    id = pad.xpath('p[@class="SLC"]/b/a/@href')[0].split('#')[1]
-    original = '\n'.join(pad.xpath('p[@class="TXT"]/text()'))
-    translation = ''.join(html.xpath('//li[a[@name="T100163"]]/text()')).strip()
-    yield original, translation
-
-def parse_language(url):
-    html = gethtml(language_url)
+def parse_language(html):
     xpath = '//h1[contains(text(), "Tongue Twisters")]'
+    language = html.xpath(xpath)[0].text_content().strip().replace(' Tongue Twisters', '')
+    def _parse_pad(pad):
+        original = pad.xpath('p[@class="TXT"]')[0].text_content()
+        hrefs = pad.xpath('descendant::a/@href')
+        if len(hrefs) == 0:
+            translation = None
+        else:
+            name = hrefs[0].split('#')[1]
+            translation = html.xpath('//li[a[@name="%s"]]' % name)[0].text_content()
+        return original, translation
+
+    pads = html.xpath('//td[@class="PAD"]')
+    print(len(pads))
     return {
-        'language': html.xpath(xpath)[0].text_content().strip().replace(' Tongue Twisters', '')
-        'tongue_twisters': list(map(_parse_pad, html.xpath('//td[@class="PAD"]')))
+        'language': language,
+        'tongue_twisters': list(map(_parse_pad, pads))
     }
 
 if __name__ == '__main__':
