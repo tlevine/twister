@@ -22,7 +22,7 @@ def twister():
 get = cache('~/.twister')(requests.get)
 def gethtml(url):
     try:
-        html = lxml.html.fromstring(get(url).text)
+        html = lxml.html.fromstring(get(url).content.decode('utf-8'))
     except Exception as e:
         print(url)
         raise e
