@@ -38,6 +38,7 @@ def parse_language(html):
         if len(hrefs) == 0:
             translation = None
         else:
+            print(hrefs)
             name = hrefs[0].split('#')[1]
             translation = html.xpath('//li[a[@name="%s"]]' % name)[0].text_content()
         return original, translation
