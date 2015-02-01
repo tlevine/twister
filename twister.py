@@ -11,7 +11,11 @@ def main():
 
 def twister():
     for language_url in languages():
-        language = parse_language(gethtml(language_url))
+        try:
+            language = parse_language(gethtml(language_url))
+        except Exception as e:
+            e.args = ('%s (%s)' % (e.args[0], language['language']),) + e.args[1:]
+            raise e
         for original, translation in language['tongue_twisters']:
             yield language['language'], original, translation
 
@@ -39,7 +43,6 @@ def parse_language(html):
         return original, translation
 
     pads = html.xpath('//td[@class="PAD"]')
-    print(len(pads))
     return {
         'language': language,
         'tongue_twisters': list(map(_parse_pad, pads))
