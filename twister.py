@@ -41,7 +41,7 @@ def languages():
 
 def parse_language(html):
     xpath = '//h1[contains(text(), "Tongue Twisters")]'
-    language = html.xpath(xpath)[0].text_content().strip().replace(' Tongue Twisters', '')
+    language = html.xpath(xpath)[0].text_content().strip().split(' Tongue Twisters')[0]
     def _parse_pad(pad):
         original = pad.xpath('p[@class="TXT"]')[0].text_content()
         hrefs = pad.xpath('descendant::a/@href')
